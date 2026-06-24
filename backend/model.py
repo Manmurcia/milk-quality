@@ -131,13 +131,21 @@ class MilkQualityModel:
 
     def _load_or_train(self):
         if os.path.exists(self.MODEL_PATH):
-            with open(self.MODEL_PATH, "rb") as f:
-                data = pickle.load(f)
-                self.pipeline = data["pipeline"]
-                self.metrics = data["metrics"]
-                self.trained = True
-        else:
-            self.train()
+            try:
+                with open(self.MODEL_PATH, "rb") as f:
+                    data = pickle.load(f)
+                    self.pipeline = data["pipeline"]
+                    self.metrics = data["metrics"]
+                    self.trained = True
+                    return
+            except Exception as e:
+                print(f"⚠️ No se pudo cargar el modelo existente: {e}")
+                print("🔄 Re-entrenando el modelo desde cero para recuperar la ejecución...")
+                try:
+                    os.remove(self.MODEL_PATH)
+                except OSError:
+                    pass
+        self.train()
 
     def train(self):
         X, y = generar_datos_sinteticos(n=2500)
